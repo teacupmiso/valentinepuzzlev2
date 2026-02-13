@@ -1,250 +1,280 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💌</title>
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            min-height:100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            background:#FFDAE9;
-            overflow:auto;
-            padding:24px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💌</title>
+<style>
+/* --- BASIC STYLING --- */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #111;
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#FFDAE9;
+    overflow:auto;
+    padding:24px;
+}
 
-        #envelopeStage {
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            min-height:100vh;
-            position:fixed;
-            inset:0;
-            z-index:10;
-        }
+/* --- ENVELOPE --- */
+#envelopeStage {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    position:fixed;
+    inset:0;
+    z-index:10;
+}
+.envelope {
+    position: relative;
+    width: 220px;
+    height: 160px;
+    background: #f5e6d3;
+    border: 1px solid #d4c4a8;
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.envelope:hover:not(.opening) {
+    transform: scale(1.05);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+}
+.envelope-flap {
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: linear-gradient(165deg, #e8d5c4 0%, #d4c4a8 45%, #c9b89a 100%);
+    clip-path: polygon(0 0, 50% 50%, 100% 0);
+    transform-origin: top center;
+    transition: transform 0.8s cubic-bezier(0.34,1.2,0.64,1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.envelope.opening .envelope-flap { transform: rotateX(-170deg); }
+.envelope-heart {
+    position:absolute;
+    top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    width:40px; height:40px;
+    color:#c41e3a;
+    pointer-events:none;
+    z-index:1;
+    transition: opacity 0.35s ease;
+}
+.envelope-heart.hidden { opacity:0; }
 
-        .container {
-            display:none;
-            flex-direction:column;
-            text-align:center;
-            background:white;
-            padding:40px 36px;
-            border-radius:16px;
-            box-shadow:0 10px 30px rgba(0,0,0,0.2);
-            width:fit-content;
-            max-width:min(650px, calc(100vw - 48px));
-            min-height:520px;
-            overflow-y:auto;
-            position:relative;
-            transition: opacity 0.25s ease, transform 0.3s ease;
-        }
+/* --- QUIZ STAGE --- */
+#quizStage { display:none; flex-direction:column; align-items:center; }
+.quiz-question { font-size:22px; margin-bottom:20px; text-align:center; max-width:400px; }
+.quiz-options { display:flex; flex-direction:column; gap:12px; }
+.quiz-options button {
+    padding:10px 20px; border-radius:25px; border:none;
+    background: linear-gradient(135deg,#f093fb 0%,#f5576c 100%);
+    color:white; font-weight:600; font-size:18px; cursor:pointer;
+    transition: all 0.3s ease;
+}
+.quiz-options button:hover { transform:scale(1.05); box-shadow:0 5px 15px rgba(245,87,108,0.4); }
+.feedback { margin-top:12px; color:#c41e3a; font-size:16px; min-height:20px; }
 
-        body.show-modal .container {
-            display:flex;
-        }
+/* --- PUZZLE --- */
+#puzzleStage { display:none; flex-direction:column; align-items:center; }
+.puzzle-container { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:2px; width:300px; height:300px; margin-top:20px; }
+.puzzle-tile { background-size:cover; border-radius:6px; cursor:pointer; transition:0.1s; }
+.puzzle-tile:hover:not(.empty) { transform:scale(1.05); }
+.puzzle-tile.empty { background:none; cursor:default; }
 
-        .modal-view { display:none; opacity:0; transition:opacity 0.25s ease; }
-        .modal-view.visible { display:block; opacity:1; }
+/* --- VALENTINE REVEAL --- */
+#valentineReveal { display:none; flex-direction:column; align-items:center; margin-top:20px; text-align:center; }
+#valentineReveal p { font-size:22px; margin-bottom:20px; }
 
-        /* Envelope styles */
-        .envelope {
-            position:relative;
-            width:220px; height:160px;
-            background:#f5e6d3;
-            border:1px solid #d4c4a8;
-            border-radius:4px;
-            box-shadow:0 4px 20px rgba(0,0,0,0.12);
-            cursor:pointer;
-            transition:transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        .envelope:hover:not(.opening) { transform:scale(1.05); box-shadow:0 8px 28px rgba(0,0,0,0.15); }
-        .envelope-flap {
-            position:absolute; top:0; left:0; width:100%; height:100%;
-            background:linear-gradient(165deg, #e8d5c4 0%, #d4c4a8 45%, #c9b89a 100%);
-            clip-path: polygon(0 0, 50% 50%, 100% 0);
-            transform-origin: top center;
-            transition: transform 0.8s cubic-bezier(0.34,1.2,0.64,1);
-            box-shadow:0 2px 10px rgba(0,0,0,0.1);
-        }
-        .envelope.opening .envelope-flap { transform: rotateX(-170deg); }
+/* --- SUCCESS SCREEN --- */
+#successStage { display:none; flex-direction:column; align-items:center; text-align:center; margin-top:20px; }
+#successStage p { font-size:22px; margin-bottom:20px; }
+.success-gif { max-width:300px; border-radius:12px; }
+.reset-btn { margin-top:12px; background:none; border:none; text-decoration:underline; font-size:16px; cursor:pointer; color:#666; }
+.reset-btn:hover { color:#111; }
 
-        .envelope-heart {
-            position:absolute; top:50%; left:50%;
-            transform:translate(-50%,-50%);
-            width:40px; height:40px; color:#c41e3a; z-index:1;
-            transition: opacity 0.35s ease;
-        }
-        .envelope-heart.hidden { opacity:0; }
-
-        /* Puzzle styles */
-        .puzzle-container { width:40vh; max-width:100%; margin:0 auto; background:#f5f5f5; padding:10px; border-radius:12px; transition: background 0.4s ease; }
-        .puzzle-container.completed { background:#fff; }
-        .puzzle-grid-wrap { position:relative; width:100%; aspect-ratio:1; margin:0 auto; }
-        .puzzle-grid { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:2px; border-radius:8px; width:100%; height:100%; position:absolute; inset:0; }
-        .puzzle-tile { background-size:100% 100%; background-repeat:no-repeat; background-position:center; border-radius:8px; cursor:pointer; box-shadow:0 0px 8px rgba(0,0,0,0.15); transition:transform 0.1s ease; }
-        .puzzle-tile.empty { cursor:default; box-shadow:none; }
-        .puzzle-tile:hover:not(.empty) { transform:scale(1.01); box-shadow:0 0px 10px rgba(0,0,0,0.2); z-index:10; }
-
-        .puzzle-full-image-overlay { position:absolute; inset:0; border-radius:8px; overflow:hidden; opacity:0; transition:opacity 0.25s ease; pointer-events:none; }
-        .puzzle-full-image-overlay.show { opacity:1; pointer-events:auto; }
-        .puzzle-full-image-overlay img { width:100%; height:100%; object-fit:cover; display:block; }
-
-        .puzzle-reveal-text { opacity:0; transition:opacity 0.35s ease 0.1s; margin-top:20px; }
-        .puzzle-reveal-text.show { opacity:1; }
-        .puzzle-reveal-text .complete-line { font-size:20px; color:#111; margin-bottom:12px; line-height:1.4; }
-        .puzzle-reveal-text .valentine-question { font-size:20px; color:#111; font-weight:600; margin-bottom:16px; }
-        .yes-only-btn { font-size:20px; padding:12px 24px; background:#FFDAE9; border:1px solid rgba(0,0,0,0.1); border-radius:50px; cursor:pointer; margin-top:8px; font-weight:600; }
-        .yes-only-btn:hover { transform:scale(1.02); }
-
-        /* Success */
-        .container.container--success { background:transparent; box-shadow:none; padding:24px; }
-        .success-yay { font-size:24px; font-weight:600; color:#111; margin-bottom:20px; }
-        .success-gif-wrap { margin:0 auto 24px; border-radius:12px; overflow:hidden; max-width:420px; }
-        .success-gif-wrap img { display:block; width:100%; height:auto; }
-        .reset-btn { background:none; border:none; color:#666; font-size:0.9em; cursor:pointer; text-decoration:underline; padding:8px 12px; margin-top:8px; font-family:inherit; }
-        .reset-btn:hover { color:#111; }
-
-    </style>
+/* --- CONFETTI --- */
+.confetti {
+    position:fixed; width:10px; height:10px; pointer-events:none;
+}
+@keyframes confetti-fall {
+    to { transform:translateY(100vh) rotate(360deg); opacity:0; }
+}
+</style>
 </head>
 <body>
-    <!-- ENVELOPE STAGE -->
-    <div id="envelopeStage">
-        <div class="envelope" id="envelope">
-            <div class="envelope-heart" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" clip-rule="evenodd" /></svg>
-            </div>
-            <div class="envelope-flap"></div>
+<!-- ENVELOPE -->
+<div id="envelopeStage">
+    <div class="envelope" id="envelope">
+        <div class="envelope-heart">
+            ❤️
         </div>
+        <div class="envelope-flap"></div>
     </div>
+</div>
 
-    <!-- MODAL CONTAINER -->
-    <div class="container">
-        <div class="modal-inner">
+<!-- QUIZ -->
+<div id="quizStage">
+    <div class="quiz-question" id="quizQuestion"></div>
+    <div class="quiz-options" id="quizOptions"></div>
+    <div class="feedback" id="quizFeedback"></div>
+</div>
 
-            <!-- PUZZLE VIEW -->
-            <div id="puzzleView" class="modal-view">
-                <h1 class="modal-title">親愛的 佳臻...</h1>
-                <div class="puzzle-container" id="puzzleContainer">
-                    <div class="puzzle-grid-wrap" id="puzzleGridWrap">
-                        <div class="puzzle-grid" id="puzzleGrid"></div>
-                        <div class="puzzle-full-image-overlay" id="puzzleFullImageOverlay">
-                            <img src="images/full-image.png" alt="" />
-                        </div>
-                    </div>
-                </div>
-                <div class="puzzle-reveal-text" id="puzzleRevealText">
-                    <p class="complete-line">妳是我的幾分之幾 ☺️</p>
-                    <p class="valentine-question">妳願意成為今年的 Valentine 嗎？🥺</p>
-                    <button type="button" class="yes-only-btn" id="yesBtn">願意</button>
-                </div>
-            </div>
+<!-- PUZZLE -->
+<div id="puzzleStage">
+    <div class="puzzle-container" id="puzzleGrid"></div>
+</div>
 
-            <!-- SUCCESS VIEW -->
-            <div id="successView" class="modal-view">
-                <p class="modal-title">Yay! 感謝神讓我們相遇，也很珍惜妳 🙇🏻‍♂️</p>
-                <div class="success-gif-wrap">
-                    <img src="giphy.gif" alt="" />
-                </div>
-                <button type="button" class="reset-btn" id="resetBtn">Reset</button>
-            </div>
+<!-- VALENTINE REVEAL -->
+<div id="valentineReveal">
+    <p>妳願意成為今年的 Valentine 嗎？🥺</p>
+    <button id="yesBtn">願意</button>
+</div>
 
-        </div>
-    </div>
+<!-- SUCCESS -->
+<div id="successStage">
+    <p>Yay! 感謝神讓我們相遇，也很珍惜妳 🙇🏻‍♂️</p>
+    <img src="giphy.gif" alt="" class="success-gif" />
+    <button class="reset-btn" id="resetBtn">重新開始</button>
+</div>
 
-    <script>
-        const envelopeStage = document.getElementById('envelopeStage');
-        const envelope = document.getElementById('envelope');
-        const puzzleGrid = document.getElementById('puzzleGrid');
-        const puzzleView = document.getElementById('puzzleView');
-        const successView = document.getElementById('successView');
+<script>
+// --- ENVELOPE CLICK ---
+const envelope = document.getElementById('envelope');
+envelope.addEventListener('click', ()=>{
+    envelope.querySelector('.envelope-heart').classList.add('hidden');
+    envelope.classList.add('opening');
+    setTimeout(()=>{
+        document.getElementById('envelopeStage').style.display='none';
+        startQuiz();
+    },800);
+});
 
-        envelope.addEventListener('click', () => {
-            envelope.style.pointerEvents = 'none';
-            const heart = envelope.querySelector('.envelope-heart');
-            heart.classList.add('hidden');
+// --- QUIZ DATA ---
+const quizQuestions = [
+    {
+        question:"我們到目前為止，有哪一個地方我們還沒有去過兩次約會？",
+        options:["拉古納海灘","Goguma","巴爾博亞島","以上都不是"],
+        correct:3
+    },
+    {
+        question:"Sam 喜歡怎麼逗 Jen 呢？",
+        options:["說要給她吃芋頭","打她手臂","躲起來讓她找我","Sam 很乖，不會逗 Jen"],
+        correct:0
+    },
+    {
+        question:"Sam 最欣賞 Jen 的什麼呢？",
+        options:["有趣、活潑的個性","溫柔與耐心","對他人的愛","對家人的愛"],
+        correct:3
+    }
+];
 
-            setTimeout(() => {
-                envelope.classList.add('opening');
-                setTimeout(() => {
-                    envelopeStage.style.display = 'none';
-                    document.body.classList.add('show-modal');
-                    requestAnimationFrame(() => requestAnimationFrame(() => puzzleView.classList.add('visible')));
-                }, 700);
-            }, 380);
-        });
+let currentQuestion = 0;
 
-        // 3x3 puzzle
-        const EMPTY_PIECE = 3;
-        const solution = [1,2,3,4,5,6,7,8,9];
-        let currentState = [...solution];
-        let tiles = [];
+function startQuiz(){
+    document.getElementById('quizStage').style.display='flex';
+    showQuestion();
+}
 
-        function initPuzzle() { scramblePuzzle(); renderPuzzle(); }
-        function scramblePuzzle() {
-            for(let i=0;i<12;i++){
-                const emptyIndex = currentState.indexOf(EMPTY_PIECE);
-                const validMoves = getValidMoves(emptyIndex);
-                const randomMove = validMoves[Math.floor(Math.random()*validMoves.length)];
-                [currentState[emptyIndex], currentState[randomMove]] = [currentState[randomMove], currentState[emptyIndex]];
+function showQuestion(){
+    const q = quizQuestions[currentQuestion];
+    document.getElementById('quizQuestion').textContent = q.question;
+    const optionsDiv = document.getElementById('quizOptions');
+    optionsDiv.innerHTML='';
+    document.getElementById('quizFeedback').textContent='';
+    q.options.forEach((opt,i)=>{
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.onclick = ()=>{
+            if(i===q.correct){
+                currentQuestion++;
+                if(currentQuestion<quizQuestions.length){
+                    showQuestion();
+                } else {
+                    startPuzzle();
+                }
+            } else {
+                document.getElementById('quizFeedback').textContent='差一點！讓我們再想想～';
             }
-        }
-        function getValidMoves(emptyIndex){
-            const validMoves=[];
-            const row=Math.floor(emptyIndex/3);
-            const col=emptyIndex%3;
-            if(row>0) validMoves.push(emptyIndex-3);
-            if(row<2) validMoves.push(emptyIndex+3);
-            if(col>0) validMoves.push(emptyIndex-1);
-            if(col<2) validMoves.push(emptyIndex+1);
-            return validMoves;
-        }
-        function renderPuzzle(){
-            puzzleGrid.innerHTML=''; tiles=[];
-            currentState.forEach((piece,index)=>{
-                const tile=document.createElement('div'); tile.className='puzzle-tile';
-                if(piece===EMPTY_PIECE){ tile.classList.add('empty'); }
-                else{ tile.style.backgroundImage=`url('images/tile-${piece}.png')`; tile.onclick=()=>moveTile(index); }
-                puzzleGrid.appendChild(tile); tiles.push(tile);
-            });
-        }
-        function moveTile(index){
-            const emptyIndex=currentState.indexOf(EMPTY_PIECE);
-            const validMoves=getValidMoves(emptyIndex);
-            if(validMoves.includes(index)){
-                [currentState[emptyIndex], currentState[index]]=[currentState[index], currentState[emptyIndex]];
-                renderPuzzle();
-                if(currentState.every((tile,i)=>tile===solution[i])) setTimeout(onPuzzleSolved,300);
-            }
-        }
-        function onPuzzleSolved(){
-            const puzzleContainer=document.getElementById('puzzleContainer');
-            const puzzleGridWrap=document.getElementById('puzzleGridWrap');
-            const puzzleRevealText=document.getElementById('puzzleRevealText');
-            const puzzleFullImageOverlay=document.getElementById('puzzleFullImageOverlay');
-            const emptyTile=puzzleGrid.querySelector('.puzzle-tile.empty');
-            if(emptyTile) emptyTile.style.backgroundImage="url('images/tile-3.png')";
-            puzzleContainer.classList.add('completed');
-            puzzleGrid.classList.add('merging');
-            setTimeout(()=>{
-                puzzleFullImageOverlay.classList.add('show');
-                setTimeout(()=>{ puzzleGridWrap.classList.add('revealing'); puzzleRevealText.classList.add('show'); },250);
-            },280);
-        }
+        };
+        optionsDiv.appendChild(btn);
+    });
+}
 
-        initPuzzle();
+// --- PUZZLE SETUP ---
+const puzzleGrid = document.getElementById('puzzleGrid');
+const EMPTY = 9;
+let puzzleState = [1,2,3,4,5,6,7,8,EMPTY];
 
-        const container=document.querySelector('.container');
-        document.getElementById('yesBtn').addEventListener('click',()=>{
-            container.classList.add('container--success');
-            puzzleView.classList.remove('visible');
-            requestAnimationFrame(()=>requestAnimationFrame(()=>successView.classList.add('visible')));
-        });
-        document.getElementById('resetBtn').addEventListener('click',()=>window.location.reload());
-    </script>
+function startPuzzle(){
+    document.getElementById('quizStage').style.display='none';
+    document.getElementById('puzzleStage').style.display='flex';
+    renderPuzzle();
+}
+
+function renderPuzzle(){
+    puzzleGrid.innerHTML='';
+    puzzleState.forEach((tile,i)=>{
+        const div = document.createElement('div');
+        div.className='puzzle-tile';
+        if(tile!==EMPTY){ div.style.backgroundImage=`url('images/tile-${tile}.png')`; div.onclick=()=>moveTile(i);}
+        else div.classList.add('empty');
+        puzzleGrid.appendChild(div);
+    });
+}
+
+function moveTile(index){
+    const emptyIndex = puzzleState.indexOf(EMPTY);
+    const row = Math.floor(index/3), col=index%3;
+    const eRow = Math.floor(emptyIndex/3), eCol=emptyIndex%3;
+    if((Math.abs(row-eRow)+Math.abs(col-eCol))===1){
+        [puzzleState[index],puzzleState[emptyIndex]]=[puzzleState[emptyIndex],puzzleState[index]];
+        renderPuzzle();
+        if(puzzleState.every((v,i)=>v===i+1)) showValentine();
+    }
+}
+
+function showValentine(){
+    document.getElementById('puzzleStage').style.display='none';
+    document.getElementById('valentineReveal').style.display='flex';
+}
+
+// --- YES BUTTON & SUCCESS ---
+document.getElementById('yesBtn').addEventListener('click',()=>{
+    document.getElementById('valentineReveal').style.display='none';
+    document.getElementById('successStage').style.display='flex';
+    runConfetti(5000);
+});
+
+document.getElementById('resetBtn').addEventListener('click',()=>window.location.reload());
+
+// --- CONFETTI ---
+function runConfetti(duration){
+    const end = Date.now()+duration;
+    function tick(){
+        if(Date.now()<end){
+            createConfetti();
+            setTimeout(tick,50);
+        }
+    } tick();
+}
+function createConfetti(){
+    const div = document.createElement('div');
+    div.className='confetti';
+    div.style.left=Math.random()*100+'%';
+    div.style.top='-10px';
+    div.style.background=['#f093fb','#f5576c','#ffd700','#4facfe','#FFDAE9'][Math.floor(Math.random()*5)];
+    const duration = 2 + Math.random()*2;
+    div.style.animation=`confetti-fall ${duration}s linear`;
+    document.body.appendChild(div);
+    setTimeout(()=>div.remove(),(duration+0.5)*1000);
+}
+</script>
 </body>
 </html>
