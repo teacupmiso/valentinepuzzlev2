@@ -300,9 +300,14 @@ function isPuzzleSolved() {
 }
 
 function onPuzzleSolved() {
-    puzzleRevealText.classList.add('show');
-    puzzleFullImageOverlay.style.display = 'block'; // ensure overlay isn’t hidden
-    puzzleFullImageOverlay.classList.add('show');   // fade it in
+    // ensure the overlay is positioned and visible
+    puzzleFullImageOverlay.style.display = 'block';
+    puzzleFullImageOverlay.style.zIndex = '100'; // make sure it's on top
+    // trigger fade-in
+    setTimeout(() => {
+        puzzleFullImageOverlay.classList.add('show');
+        puzzleRevealText.classList.add('show');
+    }, 10);
 }
 
 function checkComplete(tiles){
