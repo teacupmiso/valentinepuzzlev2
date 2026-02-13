@@ -144,7 +144,7 @@ const successView = document.getElementById('successView');
 const resetBtn = document.getElementById('resetBtn');
 // Puzzle state
 let tiles = [];
-const EMPTY_PIECE = 3;
+const EMPTY_PIECE = 9;
 const solution = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // empty = 3 at index 2
 let currentState = [...solution];
 
@@ -291,6 +291,7 @@ function isPuzzleSolved() {
 
 function onPuzzleSolved() {
     puzzleRevealText.classList.add('show');
+    puzzleFullImageOverlay.classList.add('show'); // make full image visible
 }
 
 function checkComplete(tiles){
