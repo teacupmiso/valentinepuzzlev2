@@ -214,7 +214,6 @@ envelope.addEventListener('click',()=>{
     },1000);
 });
 
-// PUZZLE (basic 3x3 shuffle)
 function initPuzzle(){
     puzzleGrid.innerHTML='';
     const tiles = [];
@@ -231,16 +230,24 @@ function initPuzzle(){
         puzzleGrid.appendChild(div);
         tiles.push(div);
     }
+
     tiles.forEach(t=>t.addEventListener('click',()=>moveTile(t,tiles)));
 
-    // shuffle
+    // shuffle with valid moves, easy to solve
     let emptyIdx = 8;
-    for(let i=0;i<100;i++){ // 100 random moves
+    const getNeighbors = (idx) => {
         const neighbors = [];
-        tiles.forEach((t,j)=>{
-            const dist = Math.abs(j-emptyIdx);
-            if(dist===1 || dist===3) neighbors.push(t);
-        });
+        const row = Math.floor(idx/3);
+        const col = idx%3;
+        if(row>0) neighbors.push(tiles[idx-3]);       // up
+        if(row<2) neighbors.push(tiles[idx+3]);       // down
+        if(col>0) neighbors.push(tiles[idx-1]);       // left
+        if(col<2) neighbors.push(tiles[idx+1]);       // right
+        return neighbors;
+    };
+
+    for(let i=0;i<40;i++){  // fewer moves for easier puzzle
+        const neighbors = getNeighbors(emptyIdx);
         const moveTile = neighbors[Math.floor(Math.random()*neighbors.length)];
         [moveTile.dataset.index, tiles[emptyIdx].dataset.index] = [tiles[emptyIdx].dataset.index, moveTile.dataset.index];
         const tempBg = moveTile.style.background;
